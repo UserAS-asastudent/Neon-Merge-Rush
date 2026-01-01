@@ -1,0 +1,53 @@
+name: Deploy Neon Merge Rush
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies (if any)
+      run: |
+        if [ -f package.json ]; then
+          npm ci
+        fi
+
+    - name: Build (if needed)
+      run: |
+        if [ -f package.json ]; then
+          npm run build --if-present
+        fi
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: github.ref == 'refs/heads/main'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./
+        cname: your-custom-domain.com  # Optional: Add your custom domain
+
+    - name: Notify deployment success
+      if: success()
+      run: |
+        echo "🎮 Deployment successful!"
+        echo "Your game is now live at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+
+    - name: Notify deployment failure
+      if: failure()
+      run: |
+        echo "❌ Deployment failed. Check the logs above for details."
