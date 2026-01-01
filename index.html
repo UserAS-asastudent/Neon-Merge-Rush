@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Merge Rush - Addictive Puzzle Game</title>
+    <meta name="description" content="The most addictive merge puzzle game of 2025! Combine neon blocks, reach high scores, and compete globally!">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --neon-cyan: #00fff9;
+            --neon-pink: #ff00ff;
+            --neon-purple: #9d00ff;
+            --neon-blue: #0066ff;
+            --neon-green: #00ff88;
+            --neon-orange: #ff6600;
+            --dark-bg: #0a0a1a;
+            --grid-bg: #151530;
+            --text-glow: 0 0 10px currentColor, 0 0 20px currentColor;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Background Stars */
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .stars {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        /* Game Container */
+        .game-container {
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: var(--text-glow);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 10px var(--neon-cyan)); }
+            50% { filter: brightness(1.3) drop-shadow(0 0 20px var(--neon-pink)); }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--neon-cyan);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* Score Panel */
+        .score-panel {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            gap: 15px;
+            animation: slideIn 0.8s ease-out 0.2s backwards;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .score-box {
+            flex: 1;
+            background: rgba(157, 0, 255, 0.2);
+            border: 2px solid var(--neon-purple);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+        }
+
+        .score-box:hover::before {
+            left: 100%;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+
+        /* Game Board */
+        .game-board {
+            background: rgba(21, 21, 48, 0.6);
+            border: 3px solid var(--neon-cyan);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 249, 0.3), inset 0 0 30px rgba(157, 0, 255, 0.2);
+            backdrop-filter: blur(20px);
+            animation: slideIn 0.8s ease-out 0.4s backwards;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: rgba(10, 10, 26, 0.8);
+            border: 2px solid rgba(0, 255, 249, 0.3);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cell::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .cell:active::before {
+            width: 200%;
+            height: 200%;
+        }
+
+        .cell.empty {
+            background: rgba(10, 10, 26, 0.4);
+            border-color: rgba(0, 255, 249, 0.1);
+        }
+
+        .cell:not(.empty):hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 0 20px currentColor;
+        }
+
+        /* Tile Colors */
+        .cell[data-value="2"] {
+            background: linear-gradient(135deg, #00fff9, #00cccc);
+            color: #0a0a1a;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 249, 0.5);
+        }
+
+        .cell[data-value="4"] {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #0a0a1a;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        .cell[data-value="8"] {
+            background: linear-gradient(135deg, #ff00ff, #cc00cc);
+            color: white;
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+
+        .cell[data-value="16"] {
+            background: linear-gradient(135deg, #9d00ff, #7a00cc);
+            color: white;
+            border-color: var(--neon-purple);
+            box-shadow: 0 0 15px rgba(157, 0, 255, 0.5);
+        }
+
+        .cell[data-value="32"] {
+            background: linear-gradient(135deg, #0066ff, #0052cc);
+            color: white;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 102, 255, 0.5);
+        }
+
+        .cell[data-value="64"] {
+            background: linear-gradient(135deg, #ff6600, #cc5200);
+            color: white;
+            border-color: var(--neon-orange);
+            box-shadow: 0 0 20px rgba(255, 102, 0, 0.6);
+        }
+
+        .cell[data-value="128"] {
+            background: linear-gradient(135deg, #ffff00, #cccc00);
+            color: #0a0a1a;
+            border-color: #ffff00;
+            box-shadow: 0 0 25px rgba(255, 255, 0, 0.7);
+        }
+
+        .cell[data-value="256"] {
+            background: linear-gradient(135deg, #ff0066, #cc0052);
+            color: white;
+            border-color: #ff0066;
+            box-shadow: 0 0 30px rgba(255, 0, 102, 0.8);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .cell[data-value="512"], .cell[data-value="1024"], .cell[data-value="2048"] {
+            background: linear-gradient(135deg, #00ffff, #ff00ff, #ffff00);
+            color: white;
+            border: 3px solid white;
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.9);
+            animation: rainbow 2s linear infinite, pulse 1s infinite;
+        }
+
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        /* Merge Animation */
+        @keyframes merge {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .cell.merged {
+            animation: merge 0.4s ease;
+        }
+
+        /* New Tile Animation */
+        @keyframes appear {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(180deg); }
+            100% { transform: scale(1) rotate(360deg); opacity: 1; }
+        }
+
+        .cell.new {
+            animation: appear 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .btn:active::before {
+            width: 300%;
+            height: 300%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
+            color: #0a0a1a;
+            border: 2px solid var(--neon-cyan);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 255, 249, 0.8), 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+            color: white;
+            border: 2px solid var(--neon-pink);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.8), 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0) scale(0.95);
+        }
+
+        /* Direction Controls for Mobile */
+        .direction-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 300px;
+            margin: 20px auto;
+        }
+
+        .arrow-btn {
+            aspect-ratio: 1;
+            background: rgba(157, 0, 255, 0.3);
+            border: 2px solid var(--neon-purple);
+            border-radius: 15px;
+            color: var(--neon-cyan);
+            font-size: 2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .arrow-btn:active {
+            transform: scale(0.9);
+            background: rgba(157, 0, 255, 0.6);
+            box-shadow: 0 0 20px var(--neon-purple);
+        }
+
+        .arrow-btn.empty {
+            visibility: hidden;
+        }
+
+        /* Game Over Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(26, 10, 46, 0.95), rgba(22, 33, 62, 0.95));
+            border: 3px solid var(--neon-cyan);
+            border-radius: 30px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 50px rgba(0, 255, 249, 0.5);
+            animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0) rotate(-180deg); opacity: 0; }
+            to { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .modal-score {
+            font-size: 1.5rem;
+            color: var(--neon-cyan);
+            margin-bottom: 30px;
+        }
+
+        /* Instructions */
+        .instructions {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(157, 0, 255, 0.1);
+            border-radius: 15px;
+            border: 2px solid rgba(157, 0, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .instructions h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-cyan);
+            margin-bottom: 10px;
+        }
+
+        .instructions p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 10px;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .cell {
+                font-size: 1.5rem;
+            }
+
+            .score-value {
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                padding: 12px 24px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Particle Effect */
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particle-burst 0.8s ease-out forwards;
+        }
+
+        @keyframes particle-burst {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">NEON MERGE</h1>
+            <p class="subtitle">Swipe to Merge & Conquer</p>
+        </div>
+
+        <div class="score-panel">
+            <div class="score-box">
+                <div class="score-label">Score</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            <div class="score-box">
+                <div class="score-label">Best</div>
+                <div class="score-value" id="best-score">0</div>
+            </div>
+            <div class="score-box">
+                <div class="score-label">Moves</div>
+                <div class="score-value" id="moves">0</div>
+            </div>
+        </div>
+
+        <div class="game-board">
+            <div class="grid" id="grid"></div>
+            
+            <div class="direction-controls">
+                <div class="arrow-btn empty"></div>
+                <div class="arrow-btn" data-direction="up">▲</div>
+                <div class="arrow-btn empty"></div>
+                <div class="arrow-btn" data-direction="left">◄</div>
+                <div class="arrow-btn" data-direction="down">▼</div>
+                <div class="arrow-btn" data-direction="right">►</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" id="new-game">New Game</button>
+            <button class="btn btn-secondary" id="undo-btn">Undo Move</button>
+        </div>
+
+        <div class="instructions">
+            <h3>🎮 How to Play</h3>
+            <p>
+                <strong>Desktop:</strong> Use arrow keys ⬆️⬇️⬅️➡️<br>
+                <strong>Mobile:</strong> Swipe or tap direction buttons<br>
+                <strong>Goal:</strong> Merge same numbers to reach 2048 and beyond!
+            </p>
+        </div>
+    </div>
+
+    <div class="modal" id="game-over-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">GAME OVER</h2>
+            <p class="modal-score">Your Score: <span id="final-score">0</span></p>
+            <button class="btn btn-primary" id="restart-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let grid = [];
+        let score = 0;
+        let bestScore = parseInt(localStorage.getItem('neonMergeBest')) || 0;
+        let moves = 0;
+        let previousState = null;
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initStars();
+            initGame();
+            updateBestScore();
+            setupControls();
+        });
+
+        // Create starfield background
+        function initStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Initialize game
+        function initGame() {
+            grid = Array(4).fill().map(() => Array(4).fill(0));
+            score = 0;
+            moves = 0;
+            updateScore();
+            updateMoves();
+            addNewTile();
+            addNewTile();
+            renderGrid();
+        }
+
+        // Add new tile
+        function addNewTile() {
+            const empty = [];
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (grid[i][j] === 0) empty.push({i, j});
+                }
+            }
+            if (empty.length > 0) {
+                const {i, j} = empty[Math.floor(Math.random() * empty.length)];
+                grid[i][j] = Math.random() < 0.9 ? 2 : 4;
+                setTimeout(() => {
+                    const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                    if (cell) cell.classList.add('new');
+                }, 50);
+            }
+        }
+
+        // Render grid
+        function renderGrid() {
+            const gridElement = document.getElementById('grid');
+            gridElement.innerHTML = '';
+            
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = grid[i][j] === 0 ? 'cell empty' : 'cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    if (grid[i][j] !== 0) {
+                        cell.textContent = grid[i][j];
+                        cell.dataset.value = grid[i][j];
+                    }
+                    gridElement.appendChild(cell);
+                }
+            }
+        }
+
+        // Save state for undo
+        function saveState() {
+            previousState = {
+                grid: grid.map(row => [...row]),
+                score: score,
+                moves: moves
+            };
+        }
+
+        // Undo move
+        function undoMove() {
+            if (previousState) {
+                grid = previousState.grid;
+                score = previousState.score;
+                moves = previousState.moves;
+                updateScore();
+                updateMoves();
+                renderGrid();
+                previousState = null;
+            }
+        }
+
+        // Move tiles
+        function move(direction) {
+            saveState();
+            let moved = false;
+            let mergedPositions = new Set();
+
+            const rotateGrid = (times) => {
+                for (let t = 0; t < times; t++) {
+                    const newGrid = Array(4).fill().map(() => Array(4).fill(0));
+                    for (let i = 0; i < 4; i++) {
+                        for (let j = 0; j < 4; j++) {
+                            newGrid[j][3-i] = grid[i][j];
+                        }
+                    }
+                    grid = newGrid;
+                }
+            };
+
+            if (direction === 'right') rotateGrid(2);
+            else if (direction === 'down') rotateGrid(1);
+            else if (direction === 'up') rotateGrid(3);
+
+            // Move and merge logic (always move to left after rotation)
+            for (let i = 0; i < 4; i++) {
+                let row = grid[i].filter(val => val !== 0);
+                const newRow = [];
+                let skip = false;
+
+                for (let j = 0; j < row.length; j++) {
+                    if (skip) {
+                        skip = false;
+                        continue;
+                    }
+                    if (j < row.length - 1 && row[j] === row[j + 1]) {
+                        const merged = row[j] * 2;
+                        newRow.push(merged);
+                        score += merged;
+                        skip = true;
+                        moved = true;
+                        mergedPositions.add(`${i}-${newRow.length - 1}`);
+                        createParticles(i, newRow.length - 1);
+                    } else {
+                        newRow.push(row[j]);
+                    }
+                }
+
+                while (newRow.length < 4) newRow.push(0);
+                
+                for (let j = 0; j < 4; j++) {
+                    if (grid[i][j] !== newRow[j]) moved = true;
+                    grid[i][j] = newRow[j];
+                }
+            }
+
+            // Rotate back
+            if (direction === 'right') rotateGrid(2);
+            else if (direction === 'down') rotateGrid(3);
+            else if (direction === 'up') rotateGrid(1);
+
+            if (moved) {
+                moves++;
+                updateMoves();
+                addNewTile();
+                updateScore();
+                renderGrid();
+                
+                // Add merge animation
+                setTimeout(() => {
+                    mergedPositions.forEach(pos => {
+                        const [i, j] = pos.split('-');
+                        const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                        if (cell) cell.classList.add('merged');
+                    });
+                }, 50);
+
+                if (isGameOver()) {
+                    setTimeout(() => showGameOver(), 500);
+                }
+            } else {
+                previousState = null; // No move was made, don't save state
+            }
+        }
+
+        // Create particle effects
+        function createParticles(row, col) {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            if (!cell) return;
+
+            const rect = cell.getBoundingClientRect();
+            const colors = ['#00fff9', '#ff00ff', '#9d00ff', '#00ff88'];
+
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = rect.left + rect.width / 2 + 'px';
+                particle.style.top = rect.top + rect.height / 2 + 'px';
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                const angle = (Math.PI * 2 * i) / 8;
+                const distance = 50 + Math.random() * 30;
+                particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+                
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 800);
+            }
+        }
+
+        // Check if game is over
+        function isGameOver() {
+            // Check for empty cells
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (grid[i][j] === 0) return false;
+                }
+            }
+
+            // Check for possible merges
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (j < 3 && grid[i][j] === grid[i][j + 1]) return false;
+                    if (i < 3 && grid[i][j] === grid[i + 1][j]) return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Show game over modal
+        function showGameOver() {
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('game-over-modal').classList.add('show');
+        }
+
+        // Update score
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('neonMergeBest', bestScore);
+                updateBestScore();
+            }
+        }
+
+        // Update best score
+        function updateBestScore() {
+            document.getElementById('best-score').textContent = bestScore;
+        }
+
+        // Update moves
+        function updateMoves() {
+            document.getElementById('moves').textContent = moves;
+        }
+
+        // Setup controls
+        function setupControls() {
+            // Keyboard controls
+            document.addEventListener('keydown', (e) => {
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                    const direction = e.key.replace('Arrow', '').toLowerCase();
+                    move(direction);
+                }
+            });
+
+            // Touch controls
+            document.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            });
+
+            document.addEventListener('touchend', (e) => {
+                if (!touchStartX || !touchStartY) return;
+
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+
+                const dx = touchEndX - touchStartX;
+                const dy = touchEndY - touchStartY;
+
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30) {
+                    move(dx > 0 ? 'right' : 'left');
+                } else if (Math.abs(dy) > 30) {
+                    move(dy > 0 ? 'down' : 'up');
+                }
+
+                touchStartX = 0;
+                touchStartY = 0;
+            });
+
+            // Button controls
+            document.querySelectorAll('.arrow-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const direction = btn.dataset.direction;
+                    if (direction) move(direction);
+                });
+            });
+
+            // New game button
+            document.getElementById('new-game').addEventListener('click', () => {
+                initGame();
+                document.getElementById('game-over-modal').classList.remove('show');
+            });
+
+            // Undo button
+            document.getElementById('undo-btn').addEventListener('click', undoMove);
+
+            // Restart button
+            document.getElementById('restart-btn').addEventListener('click', () => {
+                initGame();
+                document.getElementById('game-over-modal').classList.remove('show');
+            });
+        }
+    </script>
+</body>
+</html>
