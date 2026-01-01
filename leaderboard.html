@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Leaderboard - Neon Merge Rush</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --neon-cyan: #00fff9;
+            --neon-pink: #ff00ff;
+            --neon-purple: #9d00ff;
+            --dark-bg: #0a0a1a;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 6vw, 3rem);
+            font-weight: 900;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--neon-cyan);
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            color: #0a0a1a;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(0, 255, 249, 0.8);
+        }
+
+        .leaderboard-container {
+            background: rgba(21, 21, 48, 0.6);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 30px rgba(0, 255, 249, 0.3);
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 10px 20px;
+            background: rgba(157, 0, 255, 0.2);
+            border: 2px solid var(--neon-purple);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .filter-tab.active {
+            background: var(--neon-purple);
+            box-shadow: 0 0 20px var(--neon-purple);
+        }
+
+        .filter-tab:hover {
+            transform: translateY(-2px);
+        }
+
+        .leaderboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .leaderboard-entry {
+            display: grid;
+            grid-template-columns: 60px 1fr auto auto;
+            gap: 15px;
+            align-items: center;
+            padding: 15px;
+            background: rgba(10, 10, 26, 0.6);
+            border: 2px solid rgba(0, 255, 249, 0.3);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            animation: entryFadeIn 0.5s ease-out backwards;
+        }
+
+        @keyframes entryFadeIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .leaderboard-entry:hover {
+            transform: scale(1.02);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 249, 0.5);
+        }
+
+        .rank {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        .rank-1 { color: #FFD700; text-shadow: 0 0 10px #FFD700; }
+        .rank-2 { color: #C0C0C0; text-shadow: 0 0 10px #C0C0C0; }
+        .rank-3 { color: #CD7F32; text-shadow: 0 0 10px #CD7F32; }
+
+        .player-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .player-name {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--neon-cyan);
+        }
+
+        .player-stats {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .score {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neon-pink);
+            text-align: right;
+        }
+
+        .moves {
+            font-size: 1rem;
+            color: var(--neon-purple);
+            text-align: right;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.5rem;
+            color: var(--neon-cyan);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .leaderboard-entry {
+                grid-template-columns: 50px 1fr;
+                gap: 10px;
+            }
+
+            .score, .moves {
+                grid-column: 2;
+                text-align: left;
+            }
+
+            .rank {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🏆 GLOBAL LEADERBOARD</h1>
+            <p class="subtitle">Top Players Worldwide</p>
+        </div>
+
+        <a href="index.html" class="back-btn">← Back to Game</a>
+
+        <div class="leaderboard-container">
+            <div class="filter-tabs">
+                <div class="filter-tab active" data-filter="today">Today</div>
+                <div class="filter-tab" data-filter="week">This Week</div>
+                <div class="filter-tab" data-filter="all">All Time</div>
+            </div>
+
+            <div class="leaderboard-list" id="leaderboard">
+                <div class="loading">Loading leaderboard...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        let currentFilter = 'today';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLeaderboard();
+            setupFilters();
+            
+            // Refresh every 30 seconds
+            setInterval(loadLeaderboard, 30000);
+        });
+
+        function setupFilters() {
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentFilter = tab.dataset.filter;
+                    loadLeaderboard();
+                });
+            });
+        }
+
+        async function loadLeaderboard() {
+            const leaderboardElement = document.getElementById('leaderboard');
+            leaderboardElement.innerHTML = '<div class="loading">Loading leaderboard...</div>';
+
+            try {
+                if (typeof window.leaderboard === 'undefined') {
+                    throw new Error('Leaderboard manager not initialized');
+                }
+
+                const scores = await window.leaderboard.getTopScores(50);
+                
+                const filteredScores = filterScoresByTime(scores, currentFilter);
+
+                if (filteredScores.length === 0) {
+                    leaderboardElement.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🎮</div>
+                            <div>No scores yet for this period.</div>
+                            <div>Be the first to set a record!</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                leaderboardElement.innerHTML = '';
+                
+                filteredScores.forEach((entry, index) => {
+                    const entryElement = createLeaderboardEntry(entry, index + 1);
+                    leaderboardElement.appendChild(entryElement);
+                });
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                leaderboardElement.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div>Unable to load leaderboard</div>
+                        <div style="font-size: 0.9rem; margin-top: 10px;">
+                            ${error.message}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function filterScoresByTime(scores, filter) {
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
+            const oneWeek = 7 * oneDay;
+
+            switch (filter) {
+                case 'today':
+                    return scores.filter(s => now - s.timestamp < oneDay);
+                case 'week':
+                    return scores.filter(s => now - s.timestamp < oneWeek);
+                default:
+                    return scores;
+            }
+        }
+
+        function createLeaderboardEntry(entry, rank) {
+            const entryDiv = document.createElement('div');
+            entryDiv.className = 'leaderboard-entry';
+            entryDiv.style.animationDelay = `${rank * 0.05}s`;
+
+            const rankClass = rank <= 3 ? `rank-${rank}` : '';
+            const rankMedal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+
+            const timeAgo = getTimeAgo(entry.timestamp);
+
+            entryDiv.innerHTML = `
+                <div class="rank ${rankClass}">
+                    ${rankMedal}${rank}
+                </div>
+                <div class="player-info">
+                    <div class="player-name">${escapeHtml(entry.playerName)}</div>
+                    <div class="player-stats">${entry.moves} moves • ${timeAgo}</div>
+                </div>
+                <div class="score">${entry.score.toLocaleString()}</div>
+                <div class="moves">${entry.moves} moves</div>
+            `;
+
+            return entryDiv;
+        }
+
+        function getTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            
+            if (seconds < 60) return 'just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+            return `${Math.floor(seconds / 86400)}d ago`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
